@@ -64,6 +64,9 @@ Make sure you have Node.js installed:
 
 ## 📂 Project Structure
 
+## 📂 Project Structure
+
+```text
 src/
 ├── components/
 │   ├── ProductCard.jsx       # Individual product card component
@@ -78,8 +81,7 @@ src/
 ├── useCartStore.js           # Zustand global state management
 ├── App.jsx                   # Main application layout & routes
 └── main.jsx                  # React DOM entry point
-
----
+```
 
 ## 📝 License
 
