@@ -1,49 +1,50 @@
 import { useState } from 'react';
-import useFetch from '../useFetch';
-import ProductCard from '../components/ProductCard';
+import useFetch from '../hooks/useFetch';
+import ProductCard from '../components/ProductCard'; // Import komponen baru
 
 export default function Home() {
-  const { data: products, loading, error } = useFetch('https://fakestoreapi.com/products');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [sortBy, setSortBy] = useState('default'); // State untuk urutan harga
+  const [sortBy, setSortBy] = useState('default');
 
-  if (loading) return <div className="text-center py-10 text-slate-300">Loading produk...</div>;
-  if (error) return <div className="text-center py-10 text-rose-400">Error: {error}</div>;
+  const { data, loading, error } = useFetch('https://dummyjson.com/products?limit=20');
 
-  const categories = ['All', ...new Set(products.map((p) => p.category))];
+  if (loading) return <p className="text-center py-10 text-sky-400 animate-pulse">Loading data...</p>;
+  if (error) return <p className="text-center py-10 text-rose-400">Error: {error}</p>;
 
-  // 1. Filter Produk berdasarkan Search Bar & Kategori
-  const filteredProducts = products.filter((product) => {
-    const matchesSearch = product.title.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
+  const productsList = data?.products || [];
+
+  // 1. Ekstraksi kategori unik
+  const categories = ['All', ...new Set(productsList.map((p) => p.category))];
+
+  // 2. Filter berdasarkan Search & Kategori
+  const produkTersaring = productsList.filter((item) => {
+    const matchesSearch = item.title.toLowerCase().includes(search.toLowerCase());
+    const matchesCategory = selectedCategory === 'All' || item.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
-  // 2. Sort Produk berdasarkan Opsi yang Dipilih
-  // Kita buat salinan baru dengan [...] agar tidak mengubah array asli
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
-    if (sortBy === 'lowest') return a.price - b.price;   // Termurah -> Termahal
-    if (sortBy === 'highest') return b.price - a.price;  // Termahal -> Termurah
-    return 0; // Default (urutan asli dari API)
+  // 3. Sorting Harga
+  const produkTersortir = [...produkTersaring].sort((a, b) => {
+    if (sortBy === 'lowest') return a.price - b.price;
+    if (sortBy === 'highest') return b.price - a.price;
+    return 0;
   });
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-sky-400 mb-6 text-center">Katalog Produk </h1>
+      <h1 className="text-2xl font-bold text-sky-400 mb-6 text-center">Katalog Produk 🛍️</h1>
 
-      {/* Control Panel */}
-      <div className="flex flex-col md:flex-row gap-4 mb-8">
-        {/* Search Input */}
+      {/* Panel Pencarian + Dropdown Sort */}
+      <div className="flex flex-col md:flex-row gap-4 mb-6 max-w-2xl mx-auto">
         <input
           type="text"
-          placeholder="Cari produk..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Cari nama produk..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
           className="flex-1 px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
         />
 
-        {/* Dropdown Sorting Harga */}
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
@@ -55,8 +56,8 @@ export default function Home() {
         </select>
       </div>
 
-      {/* Filter Kategori (Pills) */}
-      <div className="flex gap-2 overflow-x-auto pb-4 mb-6">
+      {/* Tombol Filter Kategori */}
+      <div className="flex gap-2 overflow-x-auto pb-4 mb-6 justify-start md:justify-center">
         {categories.map((cat) => (
           <button
             key={cat}
@@ -72,13 +73,13 @@ export default function Home() {
         ))}
       </div>
 
-      {/* Grid Produk */}
-      {sortedProducts.length === 0 ? (
+      {/* Grid Produk - Menggunakan Komponen ProductCard */}
+      {produkTersortir.length === 0 ? (
         <p className="text-center text-slate-400 py-10">Produk tidak ditemukan.</p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {sortedProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {produkTersortir.map((item) => (
+            <ProductCard key={item.id} item={item} />
           ))}
         </div>
       )}
