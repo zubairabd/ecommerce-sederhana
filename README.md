@@ -2,6 +2,8 @@
 
 A modern, responsive, and fully functional E-Commerce Frontend Application built with React, Vite, Tailwind CSS, and Zustand.
 
+**Live Demo:** [https://ecommerce-sederhana.vercel.app/](https://ecommerce-sederhana.vercel.app/)
+
 ![React](https://img.shields.io/badge/React-18-blue?style=for-the-badge&logo=react)
 ![Vite](https://img.shields.io/badge/Vite-5-646CFF?style=for-the-badge&logo=vite)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3-38B2AC?style=for-the-badge&logo=tailwind-css)
