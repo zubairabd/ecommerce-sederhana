@@ -1,4 +1,4 @@
-# 🛍️ React Online Shop App
+# React Online Shop App
 
 A modern, responsive, and fully functional E-Commerce Frontend Application built with React, Vite, Tailwind CSS, and Zustand.
 
@@ -9,23 +9,23 @@ A modern, responsive, and fully functional E-Commerce Frontend Application built
 
 ---
 
-## ✨ Features
+##  Features
 
-- 📦 Dynamic Product Catalog: Fetches real-time product data and categories from external API (DummyJSON).
-- 🔍 Real-time Search & Category Filter: Instant search filtering combined with category tab selection.
-- 🔀 Sorting & Pagination: Sort products by price (lowest/highest) and seamlessly browse through paginated results.
-- 💀 Skeleton Loading UI: Enhanced User Experience (UX) with sleek pulse skeleton loading states.
-- 🛒 Cart Management: Add, update quantities, remove items, or clear cart using Zustand state management.
-- 💾 Persistent Storage: Cart and order history remain intact across page reloads via localStorage.
-- 🔔 Interactive UI & Animations: 
+-  Dynamic Product Catalog: Fetches real-time product data and categories from external API (DummyJSON).
+-  Real-time Search & Category Filter: Instant search filtering combined with category tab selection.
+-  Sorting & Pagination: Sort products by price (lowest/highest) and seamlessly browse through paginated results.
+-  Skeleton Loading UI: Enhanced User Experience (UX) with sleek pulse skeleton loading states.
+-  Cart Management: Add, update quantities, remove items, or clear cart using Zustand state management.
+-  Persistent Storage: Cart and order history remain intact across page reloads via localStorage.
+-  Interactive UI & Animations: 
   - Toast notifications powered by react-hot-toast.
   - Dynamic badge animations with framer-motion.
-- 💳 Checkout & Order History: Multi-step user flow to fill shipping details and view full transaction histories.
-- 🌙 Dark / Light Theme Toggle: Flexible UI theme support.
+-  Checkout & Order History: Multi-step user flow to fill shipping details and view full transaction histories.
+-  Dark / Light Theme Toggle: Flexible UI theme support.
 
 ---
 
-## 🛠️ Tech Stack & Libraries
+##  Tech Stack & Libraries
 
 - Framework: React + Vite
 - Styling: Tailwind CSS
@@ -36,7 +36,7 @@ A modern, responsive, and fully functional E-Commerce Frontend Application built
 
 ---
 
-## 🚀 Getting Started
+##  Getting Started
 
 Follow these steps to run the project locally on your machine.
 
@@ -62,9 +62,9 @@ Make sure you have Node.js installed:
 
 ---
 
-## 📂 Project Structure
+##  Project Structure
 
-## 📂 Project Structure
+##  Project Structure
 
 ```text
 src/
@@ -83,6 +83,6 @@ src/
 └── main.jsx                  # React DOM entry point
 ```
 
-## 📝 License
+##  License
 
 This project is open-source and available under the MIT License.
