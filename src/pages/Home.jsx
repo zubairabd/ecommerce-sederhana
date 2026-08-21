@@ -1,86 +1,207 @@
-import { useState } from 'react';
-import useFetch from '../hooks/useFetch';
-import ProductCard from '../components/ProductCard'; // Import komponen baru
-
+import { useState, useEffect } from 'react';
+import ProductCard from '../components/ProductCard';
+import ProductSkeleton from '../components/ProductSkeleton';
 export default function Home() {
-  const [search, setSearch] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // State untuk Filter, Search, & Sorting
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('default');
 
-  const { data, loading, error } = useFetch('https://dummyjson.com/products?limit=20');
+  // 1. State untuk Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 6; // Jumlah produk per halaman
 
-  if (loading) return <p className="text-center py-10 text-sky-400 animate-pulse">Loading data...</p>;
-  if (error) return <p className="text-center py-10 text-rose-400">Error: {error}</p>;
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [resProducts, resCategories] = await Promise.all([
+          fetch('https://dummyjson.com/products?limit=100'), // Ambil lebih banyak produk
+          fetch('https://dummyjson.com/products/categories'),
+        ]);
 
-  const productsList = data?.products || [];
+        const dataProducts = await resProducts.json();
+        const dataCategories = await resCategories.json();
 
-  // 1. Ekstraksi kategori unik
-  const categories = ['All', ...new Set(productsList.map((p) => p.category))];
+        setProducts(dataProducts.products);
+        setCategories(dataCategories);
+      } catch (error) {
+        console.error('Gagal mengambil data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  // 2. Filter berdasarkan Search & Kategori
-  const produkTersaring = productsList.filter((item) => {
-    const matchesSearch = item.title.toLowerCase().includes(search.toLowerCase());
-    const matchesCategory = selectedCategory === 'All' || item.category === selectedCategory;
+    fetchData();
+  }, []);
+
+  // Reset ke Halaman 1 setiap kali kata kunci / kategori / urutan berubah
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedCategory, sortBy]);
+
+  // 2. Filter & Sorting Produk
+  let filteredProducts = products.filter((product) => {
+    const matchesSearch = product.title
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    const matchesCategory =
+      selectedCategory === 'all' || product.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
-  // 3. Sorting Harga
-  const produkTersortir = [...produkTersaring].sort((a, b) => {
-    if (sortBy === 'lowest') return a.price - b.price;
-    if (sortBy === 'highest') return b.price - a.price;
-    return 0;
-  });
+  if (sortBy === 'lowest') {
+    filteredProducts.sort((a, b) => a.price - b.price);
+  } else if (sortBy === 'highest') {
+    filteredProducts.sort((a, b) => b.price - a.price);
+  }
+
+  // 3. Logika Potong Data (Slice) per Halaman
+  const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+  const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
+  const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
+  const currentProducts = filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
+
+  if (loading) {
+    return (
+  <div>
+    <h1 className="text-2xl font-bold text-center text-sky-400 mb-6">
+      Katalog Produk
+    </h1>
+
+    {/* ... Bagian Search & Filter ... */}
+
+    {/* Grid Produk / Skeleton Loading */}
+    {loading ? (
+      // 2. Tampilkan 6 kartu skeleton saat status loading = true
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        {Array.from({ length: 6 }).map((_, index) => (
+          <ProductSkeleton key={index} />
+        ))}
+      </div>
+    ) : currentProducts.length === 0 ? (
+      <div className="text-center py-10 bg-slate-800/50 rounded-xl border border-slate-700">
+        <p className="text-slate-400">Produk tidak ditemukan 🔍</p>
+      </div>
+    ) : (
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        {currentProducts.map((product) => (
+          <ProductCard key={product.id} item={product} />
+        ))}
+      </div>
+    )}
+
+    {/* ... Bagian Pagination ... */}
+  </div>
+);
+  }
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-sky-400 mb-6 text-center">Katalog Produk </h1>
+      <h1 className="text-2xl font-bold text-center text-sky-400 mb-6">
+        Katalog Produk
+      </h1>
 
-      {/* Panel Pencarian + Dropdown Sort */}
-      <div className="flex flex-col md:flex-row gap-4 mb-6 max-w-2xl mx-auto">
+      {/* Control Panel: Search & Sort */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-4">
         <input
           type="text"
           placeholder="Cari nama produk..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="flex-1 px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-slate-100 placeholder-slate-400 focus:outline-none focus:border-sky-500 transition-colors"
         />
 
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
-          className="px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500 cursor-pointer"
+          className="bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-slate-100 focus:outline-none focus:border-sky-500 transition-colors"
         >
           <option value="default">Urutkan: Bawaan</option>
-          <option value="lowest">Harga: Termurah</option>
-          <option value="highest">Harga: Termahal</option>
+          <option value="lowest">Harga: Terendah</option>
+          <option value="highest">Harga: Tertinggi</option>
         </select>
       </div>
 
-      {/* Tombol Filter Kategori */}
-      <div className="flex gap-2 overflow-x-auto pb-4 mb-6 justify-start md:justify-center">
-        {categories.map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setSelectedCategory(cat)}
-            className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap capitalize transition-colors ${
-              selectedCategory === cat
-                ? 'bg-sky-500 text-white'
-                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-            }`}
-          >
-            {cat}
-          </button>
-        ))}
+      {/* Filter Kategori (Pills Button) */}
+      <div className="flex flex-wrap gap-2 mb-8 justify-center sm:justify-start">
+        <button
+          onClick={() => setSelectedCategory('all')}
+          className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all ${
+            selectedCategory === 'all'
+              ? 'bg-sky-500 text-white'
+              : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+          }`}
+        >
+          All
+        </button>
+        {categories.slice(0, 4).map((cat) => {
+          const catSlug = typeof cat === 'object' ? cat.slug : cat;
+          const catName = typeof cat === 'object' ? cat.name : cat;
+          return (
+            <button
+              key={catSlug}
+              onClick={() => setSelectedCategory(catSlug)}
+              className={`px-4 py-1.5 rounded-lg text-sm font-semibold capitalize transition-all ${
+                selectedCategory === catSlug
+                  ? 'bg-sky-500 text-white'
+                  : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+              }`}
+            >
+              {catName}
+            </button>
+          );
+        })}
       </div>
 
-      {/* Grid Produk - Menggunakan Komponen ProductCard */}
-      {produkTersortir.length === 0 ? (
-        <p className="text-center text-slate-400 py-10">Produk tidak ditemukan.</p>
+      {/* Grid Produk (Menggunakan currentProducts) */}
+      {currentProducts.length === 0 ? (
+        <div className="text-center py-10 bg-slate-800/50 rounded-xl border border-slate-700">
+          <p className="text-slate-400">Produk tidak ditemukan 🔍</p>
+        </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {produkTersortir.map((item) => (
-            <ProductCard key={item.id} item={item} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          {currentProducts.map((product) => (
+            <ProductCard key={product.id} item={product} />
           ))}
+        </div>
+      )}
+
+      {/* 4. Navigasi Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center gap-2 mt-8">
+          <button
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+          >
+            &laquo; Prev
+          </button>
+
+          {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
+            <button
+              key={page}
+              onClick={() => setCurrentPage(page)}
+              className={`w-9 h-9 rounded-lg text-sm font-bold transition-all ${
+                currentPage === page
+                  ? 'bg-sky-500 text-white'
+                  : 'bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700'
+              }`}
+            >
+              {page}
+            </button>
+          ))}
+
+          <button
+            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+          >
+            Next &raquo;
+          </button>
         </div>
       )}
     </div>

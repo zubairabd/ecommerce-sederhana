@@ -1,59 +1,103 @@
-import { useContext } from 'react';
-import { CartContext } from '../CartContext';
 import { Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import { useCartStore } from '../useCartStore';
 
 export default function CartPage() {
-  const { cart, addToCart, decreaseQty, removeFromCart } = useContext(CartContext);
+  const cart = useCartStore((state) => state.cart);
+  const removeFromCart = useCartStore((state) => state.removeFromCart);
+  const increaseQuantity = useCartStore((state) => state.increaseQuantity);
+  const decreaseQuantity = useCartStore((state) => state.decreaseQuantity);
+  const clearCart = useCartStore((state) => state.clearCart);
 
-  const totalHarga = cart.reduce((total, item) => total + item.price * item.qty, 0);
+  const handleRemove = (id, title) => {
+    removeFromCart(id);
+    toast.error(`${title} dihapus dari keranjang`);
+  };
+
+  const handleClearCart = () => {
+    if (window.confirm('Yakin ingin mengosongkan seluruh keranjang?')) {
+      clearCart();
+      toast.error('Seluruh item di keranjang telah dihapus');
+    }
+  };
+
+  const totalPrice = cart.reduce(
+    (total, item) => total + item.price * (item.quantity || 1),
+    0
+  );
 
   if (cart.length === 0) {
     return (
-      <div className="text-center py-12">
-        <h2 className="text-2xl font-bold text-slate-300 mb-4">Keranjang Belanja Masih Kosong 🛒</h2>
-        <Link to="/" className="inline-block bg-sky-500 hover:bg-sky-600 text-white px-4 py-2 rounded-lg font-medium">
-          Mulai Belanja ➔
+      <div className="text-center py-10">
+        <h2 className="text-2xl font-bold mb-4">Keranjang Belanja Kosong 🛒</h2>
+        <p className="text-slate-400 mb-6">Kamu belum menambahkan produk apa pun.</p>
+        <Link
+          to="/"
+          className="bg-sky-500 hover:bg-sky-600 text-white px-6 py-2.5 rounded-lg font-medium transition-colors inline-block"
+        >
+          Mulai Belanja
         </Link>
       </div>
     );
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold text-sky-400 mb-6 text-center">Isi Keranjang Belanja 🛒</h1>
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Keranjang Belanja</h1>
+        <button
+          onClick={handleClearCart}
+          className="text-xs text-rose-400 hover:text-rose-300 underline font-medium transition-colors"
+        >
+          Kosongkan Keranjang
+        </button>
+      </div>
 
-      <div className="space-y-4 mb-6">
+      <div className="space-y-4 mb-8">
         {cart.map((item) => (
-          <div key={item.id} className="bg-slate-800 p-4 rounded-xl border border-slate-700 flex items-center justify-between">
+          <div
+            key={item.id}
+            className="flex items-center justify-between bg-slate-800 p-4 rounded-xl border border-slate-700"
+          >
             <div className="flex items-center space-x-4">
-              <img src={item.thumbnail} alt={item.title} className="w-16 h-16 object-cover rounded-lg" />
+              <img
+                src={item.thumbnail}
+                alt={item.title}
+                className="w-16 h-16 object-cover rounded-lg"
+              />
               <div>
                 <h3 className="font-semibold text-slate-100">{item.title}</h3>
-                <p className="text-emerald-400 text-sm font-bold">${item.price} x {item.qty}</p>
+                <p className="text-emerald-400 font-bold">${item.price}</p>
+                <p className="text-xs text-slate-400 mt-1">
+                  Subtotal: ${(item.price * (item.quantity || 1)).toFixed(2)}
+                </p>
               </div>
             </div>
 
-            {/* Aksi Tambah, Kurang, & Hapus */}
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => decreaseQty(item.id)}
-                className="bg-slate-700 hover:bg-slate-600 text-slate-100 w-8 h-8 rounded-lg font-bold"
-              >
-                -
-              </button>
-              
-              <span className="font-bold text-slate-100 px-1">{item.qty}</span>
+            <div className="flex items-center space-x-4">
+              {/* Tombol Pengatur Jumlah Barang */}
+              <div className="flex items-center bg-slate-700 rounded-lg border border-slate-600">
+                <button
+                  onClick={() => decreaseQuantity(item.id)}
+                  className="px-3 py-1 text-slate-200 hover:bg-slate-600 rounded-l-lg transition-colors font-bold"
+                >
+                  -
+                </button>
+                <span className="px-3 py-1 text-sm font-semibold text-white">
+                  {item.quantity || 1}
+                </span>
+                <button
+                  onClick={() => increaseQuantity(item.id)}
+                  className="px-3 py-1 text-slate-200 hover:bg-slate-600 rounded-r-lg transition-colors font-bold"
+                >
+                  +
+                </button>
+              </div>
 
+              {/* Tombol Hapus */}
               <button
-                onClick={() => addToCart(item)}
-                className="bg-slate-700 hover:bg-slate-600 text-slate-100 w-8 h-8 rounded-lg font-bold"
-              >
-                +
-              </button>
-
-              <button
-                onClick={() => removeFromCart(item.id)}
-                className="bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 p-2 rounded-lg ml-2 text-xs font-semibold border border-rose-500/30"
+                onClick={() => handleRemove(item.id, item.title)}
+                className="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 px-3 py-1.5 rounded-lg text-sm transition-colors active:scale-95"
               >
                 Hapus
               </button>
@@ -65,19 +109,15 @@ export default function CartPage() {
       <div className="bg-slate-800 p-6 rounded-xl border border-slate-700 flex justify-between items-center">
         <div>
           <p className="text-slate-400 text-sm">Total Pembayaran:</p>
-          <p className="text-2xl font-bold text-emerald-400">${totalHarga.toFixed(2)}</p>
+          <p className="text-2xl font-bold text-emerald-400">${totalPrice.toFixed(2)}</p>
         </div>
-        <button 
-          onClick={() => alert('Fitur Checkout Berhasil!')} 
-          className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-2.5 rounded-lg font-bold transition-colors"
+
+        <Link
+          to="/checkout"
+          className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-2.5 rounded-lg font-semibold transition-colors"
         >
-          <Link 
-  to="/checkout" 
-  className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-2.5 rounded-lg font-bold transition-colors block"
->
-  Checkout Sekarang
-</Link>
-        </button>
+          Lanjut Checkout
+        </Link>
       </div>
     </div>
   );
