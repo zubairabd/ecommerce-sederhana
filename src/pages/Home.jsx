@@ -33,7 +33,7 @@ export default function Home() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-sky-400 mb-6 text-center">Katalog Produk 🛍️</h1>
+      <h1 className="text-2xl font-bold text-sky-400 mb-6 text-center">Katalog Produk </h1>
 
       {/* Panel Pencarian + Dropdown Sort */}
       <div className="flex flex-col md:flex-row gap-4 mb-6 max-w-2xl mx-auto">

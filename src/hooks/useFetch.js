@@ -6,20 +6,33 @@ export default function useFetch(url) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    let isMounted = true;
     setLoading(true);
+    setError(null);
+
     fetch(url)
       .then((res) => {
-        if (!res.ok) throw new Error('Gagal mengambil data dari server');
+        if (!res.ok) {
+          throw new Error(`Gagal mengambil data (Status: ${res.status})`);
+        }
         return res.json();
       })
       .then((data) => {
-        setData(data);
-        setLoading(false);
+        if (isMounted) {
+          setData(data);
+          setLoading(false);
+        }
       })
       .catch((err) => {
-        setError(err.message);
-        setLoading(false);
+        if (isMounted) {
+          setError(err.message || 'Terjadi kesalahan koneksi');
+          setLoading(false);
+        }
       });
+
+    return () => {
+      isMounted = false;
+    };
   }, [url]);
 
   return { data, loading, error };
