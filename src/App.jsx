@@ -35,7 +35,7 @@ function MainApp() {
         <div className="flex items-center space-x-4">
           <Link to="/" className="hover:text-sky-500">Home</Link>
           <Link to="/about" className="hover:text-sky-500">About</Link>
-          <Link className="hover:text-sky-500" to="/orders">Riwayat Pesanan</Link>.
+          <Link className="hover:text-sky-500" to="/orders">Riwayat Pesanan</Link>
           {/* 2. Gunakan motion.span untuk badge keranjang */}
           <Link to="/cart" className="relative bg-sky-500 hover:bg-sky-600 text-white px-3 py-1 rounded-full text-xs font-bold transition-colors">
             🛒 {totalItems}
